@@ -1,81 +1,130 @@
 import streamlit as st
+from PIL import Image
+import time
+from transformers import pipeline
 
 st.set_page_config(page_title="Iris Flower Detector", layout="centered")
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap');
-.stApp{background:#f2f3f9 !important;}
-header, #MainMenu, footer, .stDeployButton, [data-testid="stHeader"], [data-testid="stToolbar"]{display:none !important;}
-.block-container{padding:0 !important; margin:0 auto !important; max-width:395px !important;}
-.viewerBadge_container__r5tak{display:none !important;}
+.stApp{background:#e9e6ff !important;}
+header, #MainMenu, footer, .stDeployButton {visibility:hidden !important;}
+.block-container{
+ background:white !important;
+ border-radius:28px !important;
+ padding:0 !important;
+ max-width:390px !important;
+ min-height:840px !important;
+ box-shadow:0 10px 30px rgba(0,0,0,0.2) !important;
+ overflow:hidden !important;
+ border:2px solid #000 !important;
+}
+.stButton>button{
+ background:#4f33d1 !important;
+ color:white !important;
+ border-radius:12px !important;
+ width:100% !important;
+ height:46px !important;
+ font-weight:700 !important;
+ border:none !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# EXACT SAME SPLASH SCREEN AS YOUR PHOTO
-st.markdown("""
-<div style="
-width:100%;
-max-width:385px;
-height:810px;
-margin:10px auto;
-border:3px solid #111;
-border-radius:36px;
-overflow:hidden;
-position:relative;
-background-image: url('https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600&q=90');
-background-size: cover;
-background-position: center bottom;
-font-family:'Inter', sans-serif;
-box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-background-color: #f7f3ff;
-">
-    
-    <!-- Top Blur Overlay -->
-    <div style="
-    position:absolute; top:0; left:0; right:0; height:55%;
-    background: rgba(255,255,255,0.75);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    "></div>
+if "page" not in st.session_state:
+    st.session_state.page = "splash"
+    st.session_state.img = None
+    st.session_state.score = 98
 
-    <!-- Status Bar -->
-    <div style="position:relative; z-index:2; display:flex; justify-content:space-between; align-items:center; padding:18px 24px 10px 24px; font-size:13px; font-weight:600; color:#000;">
-        <span>9:41</span>
-        <div style="width:8px; height:8px; background:#111; border-radius:50%;"></div>
-        <div style="display:flex; gap:4px; align-items:center; font-size:11px;">📶 📶 🔋</div>
+def go(p):
+    st.session_state.page = p
+    st.rerun()
+
+IRIS = "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=90"
+IRIS2 = "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&q=85"
+
+# 1 SPLASH
+if st.session_state.page == "splash":
+    st.markdown(f"""
+    <div style='height:840px; background: linear-gradient(to bottom, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.2) 50%, rgba(0,0,0,0.1) 100%), url({IRIS}); background-size:cover; background-position:center; text-align:center; padding-top:40px;'>
+        <div style='display:flex; justify-content:space-between; padding:0 22px; font-size:13px; font-weight:600;'> <span>9:41</span> <span>●</span> <span>📶 🔋</span> </div>
+        <div style='width:68px; height:68px; background:#5f32d3; border-radius:14px; margin:50px auto 0 auto; display:flex; align-items:center; justify-content:center; font-size:34px; color:white;'>🌸</div>
+        <div style='font-size:20px; font-weight:800; color:#2d2163; margin-top:15px;'>Iris Flower Detector</div>
+        <div style='font-size:11px; color:#555;'>Identify Flowers. Explore Nature.</div>
+        <div style='position:absolute; bottom:35px; left:0; right:0; text-align:center; font-size:10px; color:#555;'>Loading...</div>
     </div>
+    """, unsafe_allow_html=True)
+    if st.button("Get Started →"):
+        go("login")
 
-    <!-- Logo & Text - Center Top -->
-    <div style="position:relative; z-index:3; text-align:center; margin-top:35px;">
-        <div style="width:64px; height:64px; background:#5f32d3; border-radius:14px; margin:0 auto; display:flex; align-items:center; justify-content:center;">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C11 4 9.5 6.5 9.5C9.5 11 10.2 12.2 12 14.5C13.8 12.2 14.5 11 14.5 9.5C14.5 6.5 13 4 12 2Z" opacity="0.95"/>
-                <path d="M6.5 9.5C5.5 10.5 4 12 4 14C4 16 6 17.5 8 17.5C9 17.5 10 17 10.8 16C9.5 13.5 8.5 11 6.5 9.5Z" opacity="0.9"/>
-                <path d="M17.5 9.5C15.5 11 14.5 13.5 13.2 16C14 17 15 17.5 16 17.5C18 17.5 20 16 20 14C20 12 18.5 10.5 17.5 9.5Z" opacity="0.9"/>
-                <path d="M12 15.5C11 16.5 10 18 10 20H14C14 18 13 16.5 12 15.5Z" opacity="0.95"/>
-            </svg>
+# 2 LOGIN
+elif st.session_state.page == "login":
+    st.markdown("""
+    <div style='padding:22px; text-align:center;'>
+        <div style='width:60px; height:60px; background:#5f32d3; border-radius:14px; margin:auto; display:flex; align-items:center; justify-content:center; color:white; font-size:30px;'>🌸</div>
+        <div style='font-size:16px; font-weight:800; color:#1e1142; margin-top:10px;'>Iris Flower Detector</div>
+        <div style='font-size:10px; color:gray;'>Identify flowers using your camera or gallery</div>
+        <div style='display:flex; gap:8px; margin-top:15px;'><div style='flex:1; background:#4f33d1; color:white; padding:8px; border-radius:8px; font-size:12px;'>Login</div><div style='flex:1; background:#f5f3ff; padding:8px; border-radius:8px; font-size:12px;'>Sign Up</div></div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.text_input("", placeholder="Email or Phone Number")
+    st.text_input("", placeholder="Password", type="password")
+    if st.button("Login"):
+        go("home")
+    st.markdown("<div style='text-align:center; font-size:11px; color:gray;'>OR<br>Continue with Google<br><br>Don't have an account? <b style='color:#4f33d1;'>Sign Up</b></div>", unsafe_allow_html=True)
+
+# 3 HOME
+elif st.session_state.page == "home":
+    st.markdown(f"""
+    <div style='padding:16px;'>
+        <div style='display:flex; justify-content:space-between;'> <span>☰</span> <span>🔔</span> </div>
+        <div style='margin-top:10px;'><b>Hello, Sanvi! 👋</b><br><small style='color:gray;'>Discover the beauty of flowers around you.</small></div>
+        <div style='height:160px; border-radius:16px; background:url({IRIS}); background-size:cover; margin:12px 0; position:relative;'>
+            <div style='position:absolute; bottom:10px; left:10px; right:10px; background:#4f33d1; border-radius:10px; padding:10px; color:white; font-size:12px; display:flex; justify-content:space-between;'><span>📷 Scan Flower<br><small style='font-size:9px;'>Identify an iris flower</small></span><span>›</span></div>
         </div>
-        <div style="font-size:19px; font-weight:800; color:#2b1a6b; margin-top:16px; letter-spacing:-0.2px;">Iris Flower Detector</div>
-        <div style="font-size:11px; color:#6e6a86; margin-top:5px; font-weight:500;">Identify Flowers. Explore Nature.</div>
-    </div>
-
-    <!-- Loading at Bottom -->
-    <div style="position:absolute; bottom:32px; left:0; right:0; text-align:center; z-index:3;">
-        <div style="display:flex; justify-content:center; gap:3px; margin-bottom:8px;">
-            <div style="width:3px; height:3px; background:#8a84a6; border-radius:50%;"></div>
-            <div style="width:3px; height:3px; background:#8a84a6; border-radius:50%; opacity:0.6;"></div>
-            <div style="width:3px; height:3px; background:#8a84a6; border-radius:50%; opacity:0.3;"></div>
-            <div style="width:3px; height:3px; background:#8a84a6; border-radius:50%; opacity:0.6;"></div>
+        <div style='display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px; text-align:center;'>
+            <div style='background:#f7f5ff; padding:14px; border-radius:12px;'>🕒<br>History</div>
+            <div style='background:#f7f5ff; padding:14px; border-radius:12px;'>🖼️<br>Gallery</div>
+            <div style='background:#f7f5ff; padding:14px; border-radius:12px;'>📚<br>Learn</div>
+            <div style='background:#f7f5ff; padding:14px; border-radius:12px;'>⚙️<br>Settings</div>
         </div>
-        <div style="font-size:10px; color:#5a5675; font-weight:500; letter-spacing:0.2px;">Loading...</div>
     </div>
+    """, unsafe_allow_html=True)
+    if st.button("📷 SCAN NOW"): go("camera")
+    c1,c2,c3,c4 = st.columns(4)
+    with c1:
+        if st.button("🏠"): go("home")
+    with c2:
+        if st.button("🕒"): go("history")
+    with c3:
+        if st.button("👤"): go("profile")
+    with c4:
+        if st.button("⚙️"): go("settings")
 
-</div>
-""", unsafe_allow_html=True)
+# 4 CAMERA
+elif st.session_state.page == "camera":
+    st.markdown(f"<div style='padding:12px; font-weight:700; display:flex; justify-content:space-between;'><span>✕</span><span>Scan Iris Flower</span><span>⚡</span></div><div style='height:420px; background:url({IRIS}); background-size:cover; display:flex; align-items:center; justify-content:center;'><div style='width:200px; height:280px; border:2px solid white; border-radius:18px;'></div></div><div style='padding:10px; text-align:center; font-size:10px; background:black; color:white;'>Place the iris flower within the frame</div>", unsafe_allow_html=True)
+    f = st.file_uploader("Upload", type=["jpg","png","jpeg"])
+    cam = st.camera_input("Take Photo")
+    final = cam if cam else f
+    if final:
+        st.session_state.img = Image.open(final).convert("RGB")
+        go("result")
+    if st.button("← Home"): go("home")
 
-# Button to go next
-st.markdown("<div style='max-width:385px; margin:0 auto; padding-top:15px;'>", unsafe_allow_html=True)
-if st.button("Get Started → Next Screen"):
-    st.switch_page("app.py")
-st.markdown("</div>", unsafe_allow_html=True)
+# 6 RESULT
+else:
+    if st.session_state.img is not None:
+        st.image(st.session_state.img, use_container_width=True)
+    else:
+        st.image(IRIS, use_container_width=True)
+    st.markdown(f"""
+    <div style='padding:16px;'>
+        <div style='display:flex; justify-content:space-between;'><div><b>Iris germanica</b><br><small style='color:gray;'>German Iris</small></div><span style='background:#d1fae5; padding:4px 8px; border-radius:12px; font-size:10px;'>{st.session_state.score}% Match</span></div>
+        <div style='background:#f8f7ff; border-radius:12px; padding:10px; margin-top:10px; font-size:11px;'>
+        🎨 Color: Purple with yellow<br>🌼 Bloom: Spring<br>📏 Height: 60-90 cm<br>🌍 Habitat: Gardens
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("View More Details"): go("home")
+    if st.button("Scan Another"): go("camera")
