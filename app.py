@@ -2,125 +2,167 @@ import streamlit as st
 from PIL import Image
 import time
 
+# =========================================================
+# PAGE CONFIG
+# =========================================================
 st.set_page_config(
     page_title="Iris Flower Detector",
     page_icon="🌸",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# =========================
-# STYLE
-# =========================
+# =========================================================
+# CSS
+# =========================================================
 st.markdown("""
 <style>
+
 .stApp {
-    background:#e9e6ff;
+    background: #e9e6ff;
 }
-header, footer, #MainMenu {
-    visibility:hidden;
+
+header {
+    visibility: hidden;
 }
+
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
 .block-container {
-    background:white;
-    max-width:390px;
-    padding:0 !important;
-    border-radius:28px;
-    overflow:hidden;
-    box-shadow:0 10px 35px rgba(70,40,150,.18);
+    max-width: 420px !important;
+    padding: 0 !important;
+    margin: auto !important;
+    background: white;
+    min-height: 100vh;
+    overflow: hidden;
 }
-.inner {
-    padding:18px;
-}
+
 .logo {
-    width:65px;
-    height:65px;
-    background:#4f33d1;
-    border-radius:17px;
-    margin:auto;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:32px;
+    width: 64px;
+    height: 64px;
+    background: #4f33d1;
+    border-radius: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: auto;
 }
+
 .title {
-    text-align:center;
-    color:#20134b;
-    font-size:22px;
-    font-weight:800;
-    margin-top:8px;
+    color: #1e1142;
+    font-size: 23px;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 10px;
 }
-.sub {
-    text-align:center;
-    color:#8a84a6;
-    font-size:12px;
+
+.subtitle {
+    color: #8a84a6;
+    font-size: 12px;
+    text-align: center;
 }
-.hero {
-    height:180px;
-    border-radius:18px;
-    background-size:cover;
-    background-position:center;
-    margin:15px 0;
-    position:relative;
+
+.inner {
+    padding: 18px;
 }
-.hero-button {
-    position:absolute;
-    bottom:12px;
-    left:12px;
-    right:12px;
-    background:rgba(79,51,209,.92);
-    color:white;
-    padding:12px;
-    border-radius:14px;
-}
-.grid {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-}
+
 .card {
-    background:#f7f5ff;
-    border:1px solid #ebe6ff;
-    border-radius:14px;
-    padding:17px 8px;
-    text-align:center;
-    color:#302565;
-    font-size:12px;
-    font-weight:600;
+    background: #f7f5ff;
+    border: 1px solid #ede8ff;
+    border-radius: 15px;
+    padding: 16px;
+    text-align: center;
+    color: #302565;
+    font-size: 12px;
+    font-weight: 600;
 }
-.badge {
-    background:#d1fae5;
-    color:#065f46;
-    border-radius:20px;
-    padding:4px 9px;
-    font-size:10px;
-    font-weight:700;
+
+.info-card {
+    background: #f8f7ff;
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 12px;
 }
-.info {
-    background:#f8f7ff;
-    border-radius:14px;
-    padding:13px;
-    margin-top:10px;
-}
+
 .row {
-    display:flex;
-    justify-content:space-between;
-    gap:8px;
-    margin:8px 0;
-    font-size:11px;
-    color:#5a5575;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 9px 0;
+    font-size: 11px;
+    color: #5a5575;
 }
-.scan-frame {
-    width:240px;
-    height:320px;
-    border:2px solid white;
-    border-radius:20px;
+
+.badge {
+    display: inline-block;
+    background: #d1fae5;
+    color: #065f46;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
 }
+
+.hero {
+    height: 190px;
+    border-radius: 18px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    margin: 16px 0;
+    overflow: hidden;
+}
+
+.hero-button {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    background: rgba(79, 51, 209, 0.92);
+    color: white;
+    padding: 12px;
+    border-radius: 14px;
+}
+
+.scan-box {
+    width: 235px;
+    height: 310px;
+    border: 2px solid white;
+    border-radius: 20px;
+}
+
+.stButton > button {
+    background: #4f33d1 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    min-height: 45px !important;
+    font-weight: 700 !important;
+}
+
+.stTextInput input {
+    border-radius: 12px !important;
+}
+
+.stFileUploader {
+    background: #f7f5ff;
+    border-radius: 14px;
+    padding: 5px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-
-# =========================
-# SESSION
-# =========================
+# =========================================================
+# SESSION STATE
+# =========================================================
 if "page" not in st.session_state:
     st.session_state.page = "splash"
 
@@ -132,14 +174,31 @@ if "score" not in st.session_state:
 
 if "history" not in st.session_state:
     st.session_state.history = [
-        ["Iris germanica", "22 Sep 2026, 10:24 AM", "98%"],
-        ["Iris versicolor", "21 Sep 2026, 05:18 PM", "95%"],
-        ["Iris pseudacorus", "20 Sep 2026, 02:37 PM", "93%"],
-        ["Iris sibirica", "18 Sep 2026, 11:02 AM", "90%"],
-        ["Iris germanica", "16 Sep 2026, 09:45 AM", "97%"]
+        {
+            "name": "Iris germanica",
+            "time": "22 Sep 2026, 10:24 AM",
+            "score": "98%"
+        },
+        {
+            "name": "Iris versicolor",
+            "time": "21 Sep 2026, 05:18 PM",
+            "score": "95%"
+        },
+        {
+            "name": "Iris pseudacorus",
+            "time": "20 Sep 2026, 02:37 PM",
+            "score": "93%"
+        },
+        {
+            "name": "Iris sibirica",
+            "time": "18 Sep 2026, 11:02 AM",
+            "score": "90%"
+        }
     ]
 
-
+# =========================================================
+# FUNCTIONS
+# =========================================================
 def go(page):
     st.session_state.page = page
     st.rerun()
@@ -151,412 +210,481 @@ IRIS_IMAGE = (
     "?auto=format&fit=crop&w=900&q=85"
 )
 
-
-# =========================
-# 1 SPLASH
-# =========================
+# =========================================================
+# 1. SPLASH SCREEN
+# =========================================================
 if st.session_state.page == "splash":
 
-    st.markdown(f"""
-    <div style="
-        height:650px;
-        background:
-        linear-gradient(
-            rgba(35,10,80,.05),
-            rgba(35,10,80,.35)
-        ),
-        url('{IRIS_IMAGE}');
-        background-size:cover;
-        background-position:center;
-        text-align:center;
-        padding-top:35px;
-    ">
+    splash_html = f"""
+<div style="
+height:650px;
+background:
+linear-gradient(
+rgba(35,10,80,.12),
+rgba(35,10,80,.45)
+),
+url('{IRIS_IMAGE}');
+background-size:cover;
+background-position:center;
+text-align:center;
+padding-top:35px;
+position:relative;
+">
 
-        <div class="logo">🌸</div>
+<div class="logo">🌸</div>
 
-        <div style="
-            color:white;
-            font-size:25px;
-            font-weight:800;
-            margin-top:10px;
-        ">
-            Iris Flower Detector
-        </div>
+<div style="
+color:white;
+font-size:25px;
+font-weight:800;
+margin-top:10px;
+">
+Iris Flower Detector
+</div>
 
-        <div style="
-            color:white;
-            font-size:13px;
-            margin-top:5px;
-        ">
-            Identify Flowers. Explore Nature.
-        </div>
+<div style="
+color:white;
+font-size:13px;
+margin-top:5px;
+">
+Identify Flowers. Explore Nature.
+</div>
 
-        <div style="
-            position:absolute;
-            bottom:90px;
-            left:0;
-            right:0;
-            color:white;
-            font-size:11px;
-        ">
-            Loading...
-        </div>
+<div style="
+position:absolute;
+bottom:95px;
+left:0;
+right:0;
+color:white;
+font-size:11px;
+">
+Identify beautiful Iris flowers easily
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+"""
 
-    if st.button("Get Started →", use_container_width=True):
+    st.markdown(
+        splash_html,
+        unsafe_allow_html=True
+    )
+
+    if st.button(
+        "Get Started →",
+        use_container_width=True
+    ):
         go("login")
 
-
-# =========================
-# 2 LOGIN
-# =========================
+# =========================================================
+# 2. LOGIN / SIGN UP
+# =========================================================
 elif st.session_state.page == "login":
 
     st.markdown("""
-    <div class="inner" style="text-align:center">
+<div class="inner" style="text-align:center;">
 
-        <div class="logo">🌸</div>
+<div class="logo">🌸</div>
 
-        <div class="title">
-            Iris Flower Detector
-        </div>
+<div class="title">
+Iris Flower Detector
+</div>
 
-        <div class="sub">
-            Identify flowers using your camera or gallery
-        </div>
+<div class="subtitle">
+Identify flowers using your camera or gallery
+</div>
 
-        <div style="
-            display:flex;
-            gap:8px;
-            margin:15px 0;
-        ">
-            <div style="
-                flex:1;
-                background:#4f33d1;
-                color:white;
-                padding:9px;
-                border-radius:10px;
-                font-size:12px;
-                font-weight:bold;
-            ">
-                Login
-            </div>
+<div style="
+display:flex;
+gap:8px;
+margin:16px 0;
+">
 
-            <div style="
-                flex:1;
-                background:#f5f3ff;
-                padding:9px;
-                border-radius:10px;
-                font-size:12px;
-            ">
-                Sign Up
-            </div>
-        </div>
+<div style="
+flex:1;
+background:#4f33d1;
+color:white;
+padding:9px;
+border-radius:10px;
+font-size:12px;
+font-weight:700;
+">
+Login
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+<div style="
+flex:1;
+background:#f5f3ff;
+color:#5a5575;
+padding:9px;
+border-radius:10px;
+font-size:12px;
+">
+Sign Up
+</div>
+
+</div>
+
+</div>
+""", unsafe_allow_html=True)
 
     email = st.text_input(
-        "Email",
+        "Email or Phone Number",
         placeholder="📧 Email or Phone Number"
     )
 
     password = st.text_input(
         "Password",
-        type="password",
-        placeholder="🔒 Password"
+        placeholder="🔒 Password",
+        type="password"
     )
 
     if st.button("Login", use_container_width=True):
         go("home")
 
     st.markdown("""
-    <div style="
-        text-align:center;
-        color:#4f33d1;
-        font-size:11px;
-        margin:8px;
-    ">
-        Forgot Password?
-    </div>
+<div style="
+text-align:center;
+color:#4f33d1;
+font-size:11px;
+margin:8px;
+">
+Forgot Password?
+</div>
 
-    <div style="
-        text-align:center;
-        color:gray;
-        font-size:11px;
-    ">
-        OR
-    </div>
-    """, unsafe_allow_html=True)
+<div style="
+text-align:center;
+color:#999;
+font-size:11px;
+margin:8px;
+">
+OR
+</div>
+""", unsafe_allow_html=True)
 
-    if st.button("G  Continue with Google", use_container_width=True):
+    if st.button(
+        "G  Continue with Google",
+        use_container_width=True
+    ):
         go("home")
 
     st.markdown("""
-    <div style="
-        text-align:center;
-        font-size:11px;
-        margin:10px;
-    ">
-        Don't have an account?
-        <b style="color:#4f33d1">Sign Up</b>
-    </div>
-    """, unsafe_allow_html=True)
+<div style="
+text-align:center;
+font-size:11px;
+margin:12px;
+">
+Don't have an account?
+<b style="color:#4f33d1;">
+Sign Up
+</b>
+</div>
+""", unsafe_allow_html=True)
 
-
-# =========================
-# 3 HOME
-# =========================
+# =========================================================
+# 3. HOME
+# =========================================================
 elif st.session_state.page == "home":
 
     st.markdown("""
-    <div class="inner">
+<div class="inner">
 
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            font-size:18px;
-        ">
-            <span>☰</span>
-            <span>🔔</span>
-        </div>
+<div style="
+display:flex;
+justify-content:space-between;
+font-size:20px;
+">
+<span>☰</span>
+<span>🔔</span>
+</div>
 
-        <div style="margin-top:12px">
+<div style="margin-top:12px;">
 
-            <b style="
-                color:#1e1142;
-                font-size:17px;
-            ">
-                Hello, Sanvi! 👋
-            </b>
+<b style="
+font-size:17px;
+color:#1e1142;
+">
+Hello, Sanvi! 👋
+</b>
 
-            <br>
+<br>
 
-            <span style="
-                color:#8a84a6;
-                font-size:11px;
-            ">
-                Discover the beauty of flowers around you.
-            </span>
+<small style="
+color:#8a84a6;
+font-size:11px;
+">
+Discover the beauty of flowers around you.
+</small>
 
-        </div>
+</div>
 
-        <div class="hero"
-             style="background-image:url(
-             '""" + IRIS_IMAGE + """'
-             );">
+</div>
+""", unsafe_allow_html=True)
 
-            <div class="hero-button">
+    hero_html = f"""
+<div class="inner">
 
-                <b>📷 Scan Flower</b>
+<div class="hero"
+style="background-image:url('{IRIS_IMAGE}');">
 
-                <br>
+<div class="hero-button">
 
-                <small>
-                    Identify an Iris flower
-                </small>
+<b style="font-size:14px;">
+📷 Scan Flower
+</b>
 
-            </div>
+<br>
 
-        </div>
+<small>
+Identify an Iris flower
+</small>
 
-        <div class="grid">
+</div>
 
-            <div class="card">
-                🕒<br>History
-            </div>
+</div>
 
-            <div class="card">
-                🖼️<br>Gallery
-            </div>
+</div>
+"""
 
-            <div class="card">
-                📚<br>Learn
-            </div>
-
-            <div class="card">
-                ⚙️<br>Settings
-            </div>
-
-        </div>
-
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        hero_html,
+        unsafe_allow_html=True
+    )
 
     c1, c2 = st.columns(2)
 
     with c1:
-        if st.button("🕒 History", use_container_width=True):
-            go("history")
-
-        if st.button("👤 Profile", use_container_width=True):
-            go("profile")
+        st.markdown(
+            '<div class="card">🕒<br>History</div>',
+            unsafe_allow_html=True
+        )
 
     with c2:
-        if st.button("📷 Scan Now", use_container_width=True):
+        st.markdown(
+            '<div class="card">🖼️<br>Gallery</div>',
+            unsafe_allow_html=True
+        )
+
+    st.write("")
+
+    c3, c4 = st.columns(2)
+
+    with c3:
+        st.markdown(
+            '<div class="card">📚<br>Learn</div>',
+            unsafe_allow_html=True
+        )
+
+    with c4:
+        st.markdown(
+            '<div class="card">⚙️<br>Settings</div>',
+            unsafe_allow_html=True
+        )
+
+    st.write("")
+
+    c5, c6 = st.columns(2)
+
+    with c5:
+        if st.button(
+            "🕒 History",
+            use_container_width=True
+        ):
+            go("history")
+
+    with c6:
+        if st.button(
+            "📷 Scan Now",
+            use_container_width=True
+        ):
             go("camera")
 
-        if st.button("⚙️ Settings", use_container_width=True):
+    c7, c8 = st.columns(2)
+
+    with c7:
+        if st.button(
+            "👤 Profile",
+            use_container_width=True
+        ):
+            go("profile")
+
+    with c8:
+        if st.button(
+            "⚙️ Settings",
+            use_container_width=True
+        ):
             go("settings")
 
-
-# =========================
-# 4 CAMERA / SCAN
-# =========================
+# =========================================================
+# 4. CAMERA / SCAN
+# =========================================================
 elif st.session_state.page == "camera":
 
     st.markdown("""
-    <div class="inner">
+<div class="inner">
 
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            font-weight:bold;
-            font-size:13px;
-        ">
-            <span>✕</span>
-            <span>Scan Iris Flower</span>
-            <span>⚡</span>
-        </div>
+<div style="
+display:flex;
+justify-content:space-between;
+font-size:13px;
+font-weight:700;
+">
+<span>✕</span>
+<span>Scan Iris Flower</span>
+<span>⚡</span>
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div style="
-        height:430px;
-        background:url('{IRIS_IMAGE}');
-        background-size:cover;
-        background-position:center;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        position:relative;
-    ">
+    camera_html = f"""
+<div style="
+height:430px;
+background:url('{IRIS_IMAGE}');
+background-size:cover;
+background-position:center;
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
+">
 
-        <div class="scan-frame"></div>
+<div class="scan-box"></div>
 
-        <div style="
-            position:absolute;
-            bottom:15px;
-            left:0;
-            right:0;
-            text-align:center;
-            color:white;
-            background:rgba(0,0,0,.45);
-            padding:10px;
-            font-size:11px;
-        ">
-            Place the iris flower within the frame
-            <br>
-            Make sure the flower is clear and well lit
-        </div>
+<div style="
+position:absolute;
+bottom:12px;
+left:10px;
+right:10px;
+text-align:center;
+color:white;
+background:rgba(0,0,0,.5);
+padding:10px;
+border-radius:10px;
+font-size:11px;
+">
+Place the iris flower within the frame
+<br>
+Make sure the flower is clear and well lit
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+"""
 
     st.markdown(
-        "<div class='inner'><b>Upload Flower Image</b></div>",
+        camera_html,
         unsafe_allow_html=True
     )
 
-    uploaded = st.file_uploader(
-        "Choose image",
+    st.markdown("""
+<div class="inner">
+
+<b style="font-size:13px;">
+Upload Flower Image
+</b>
+
+</div>
+""", unsafe_allow_html=True)
+
+    uploaded_file = st.file_uploader(
+        "Upload",
         type=["jpg", "jpeg", "png"],
         label_visibility="collapsed"
     )
 
-    camera = st.camera_input("Take Flower Photo")
+    camera_file = st.camera_input(
+        "Take a Photo"
+    )
 
-    selected = camera if camera else uploaded
+    selected_file = (
+        camera_file
+        if camera_file is not None
+        else uploaded_file
+    )
 
-    if selected:
+    if selected_file is not None:
 
-        st.session_state.result_img = Image.open(
-            selected
+        image = Image.open(
+            selected_file
         ).convert("RGB")
+
+        st.session_state.result_img = image
 
         go("processing")
 
-    if st.button("← Back to Home", use_container_width=True):
+    if st.button(
+        "← Back to Home",
+        use_container_width=True
+    ):
         go("home")
 
-
-# =========================
-# 5 PROCESSING
-# =========================
+# =========================================================
+# 5. PROCESSING
+# =========================================================
 elif st.session_state.page == "processing":
 
     st.markdown("""
-    <div style="
-        height:650px;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        align-items:center;
-        text-align:center;
-    ">
+<div style="
+height:650px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+">
 
-        <b style="
-            color:#1e1142;
-            font-size:16px;
-        ">
-            Analyzing the flower...
-        </b>
+<div style="
+font-size:17px;
+font-weight:800;
+color:#1e1142;
+">
+Analyzing the flower...
+</div>
 
-        <small style="
-            color:#8a84a6;
-            margin-top:6px;
-        ">
-            Please wait while we identify
-            the iris species.
-        </small>
+<div style="
+font-size:11px;
+color:#8a84a6;
+margin-top:7px;
+">
+Please wait while we identify the iris species.
+</div>
 
-        <div style="
-            margin:40px;
-            width:140px;
-            height:140px;
-            border:3px solid #e9e5ff;
-            border-top:3px solid #4f33d1;
-            border-radius:50%;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            font-size:45px;
-        ">
-            🌸
-        </div>
+<div style="
+margin:40px;
+width:135px;
+height:135px;
+border:3px solid #e9e5ff;
+border-top:3px solid #4f33d1;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:45px;
+">
+🌸
+</div>
 
-        <div style="
-            width:180px;
-            height:7px;
-            background:#eeeaff;
-            border-radius:10px;
-        ">
-            <div style="
-                width:70%;
-                height:7px;
-                background:#4f33d1;
-                border-radius:10px;
-            "></div>
-        </div>
+<div style="
+font-size:11px;
+color:#8a84a6;
+">
+Scanning image...
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
     time.sleep(1.5)
 
+    st.session_state.score = 98
+
     go("result")
 
-
-# =========================
-# 6 RESULT
-# =========================
+# =========================================================
+# 6. RESULT
+# =========================================================
 elif st.session_state.page == "result":
 
-    if st.session_state.result_img:
+    if st.session_state.result_img is not None:
 
         st.image(
             st.session_state.result_img,
@@ -570,68 +698,72 @@ elif st.session_state.page == "result":
             use_container_width=True
         )
 
-    st.markdown("""
-    <div class="inner">
+    score = st.session_state.score
 
-        <div style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-        ">
+    st.markdown(f"""
+<div class="inner">
 
-            <div>
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+">
 
-                <b style="
-                    color:#1e1142;
-                    font-size:17px;
-                ">
-                    Iris germanica
-                </b>
+<div>
 
-                <br>
+<b style="
+font-size:17px;
+color:#1e1142;
+">
+Iris germanica
+</b>
 
-                <small style="color:#8a84a6">
-                    German Iris
-                </small>
+<br>
 
-            </div>
+<small style="
+color:#8a84a6;
+">
+German Iris
+</small>
 
-            <span class="badge">
-                98% Match
-            </span>
+</div>
 
-        </div>
+<span class="badge">
+{score}% Match
+</span>
 
-        <div class="info">
+</div>
 
-            <b style="font-size:12px">
-                Key Features
-            </b>
+<div class="info-card">
 
-            <div class="row">
-                <span>🎨 Color</span>
-                <span>Purple with yellow markings</span>
-            </div>
+<b style="font-size:12px;">
+Key Features
+</b>
 
-            <div class="row">
-                <span>🌼 Bloom Time</span>
-                <span>Spring - Early Summer</span>
-            </div>
+<div class="row">
+<span>🎨 Color</span>
+<span>Purple with yellow markings</span>
+</div>
 
-            <div class="row">
-                <span>📏 Height</span>
-                <span>60 - 90 cm</span>
-            </div>
+<div class="row">
+<span>🌼 Bloom Time</span>
+<span>Spring - Early Summer</span>
+</div>
 
-            <div class="row">
-                <span>🌍 Habitat</span>
-                <span>Gardens, meadows, wetlands</span>
-            </div>
+<div class="row">
+<span>📏 Height</span>
+<span>60 - 90 cm</span>
+</div>
 
-        </div>
+<div class="row">
+<span>🌍 Habitat</span>
+<span>Gardens, meadows, wetlands</span>
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+
+</div>
+""", unsafe_allow_html=True)
 
     if st.button(
         "View More Details",
@@ -651,13 +783,12 @@ elif st.session_state.page == "result":
     ):
         go("home")
 
-
-# =========================
-# 7 DETAILS
-# =========================
+# =========================================================
+# 7. FLOWER DETAILS
+# =========================================================
 elif st.session_state.page == "details":
 
-    if st.session_state.result_img:
+    if st.session_state.result_img is not None:
 
         st.image(
             st.session_state.result_img,
@@ -665,101 +796,112 @@ elif st.session_state.page == "details":
         )
 
     st.markdown("""
-    <div class="inner">
+<div class="inner">
 
-        <b style="
-            color:#1e1142;
-            font-size:17px;
-        ">
-            Iris germanica
-        </b>
+<b style="
+font-size:18px;
+color:#1e1142;
+">
+Iris germanica
+</b>
 
-        <br>
+<br>
 
-        <small style="color:#8a84a6">
-            German Iris
-        </small>
+<small style="color:#8a84a6;">
+German Iris
+</small>
 
-        <span class="badge">
-            98% Match
-        </span>
+<span class="badge">
+98% Match
+</span>
 
-        <div style="
-            display:flex;
-            gap:7px;
-            margin:15px 0;
-        ">
+<div style="
+display:flex;
+gap:8px;
+margin:15px 0;
+">
 
-            <span style="
-                background:#4f33d1;
-                color:white;
-                padding:6px 13px;
-                border-radius:20px;
-                font-size:11px;
-            ">
-                About
-            </span>
+<span style="
+background:#4f33d1;
+color:white;
+padding:6px 13px;
+border-radius:20px;
+font-size:11px;
+">
+About
+</span>
 
-            <span style="
-                background:#f5f3ff;
-                padding:6px 13px;
-                border-radius:20px;
-                font-size:11px;
-            ">
-                Care
-            </span>
+<span style="
+background:#f5f3ff;
+color:#5a5575;
+padding:6px 13px;
+border-radius:20px;
+font-size:11px;
+">
+Care
+</span>
 
-            <span style="
-                background:#f5f3ff;
-                padding:6px 13px;
-                border-radius:20px;
-                font-size:11px;
-            ">
-                More Photos
-            </span>
+<span style="
+background:#f5f3ff;
+color:#5a5575;
+padding:6px 13px;
+border-radius:20px;
+font-size:11px;
+">
+More Photos
+</span>
 
-        </div>
+</div>
 
-        <div class="info">
+<div class="info-card">
 
-            <b>Description</b>
+<b style="font-size:12px;">
+Description
+</b>
 
-            <p style="
-                font-size:11px;
-                color:#5a5575;
-                line-height:1.6;
-            ">
-                Iris germanica, commonly known as the
-                German Iris, is a perennial flowering
-                plant known for its striking purple,
-                blue and yellow blooms.
-            </p>
+<p style="
+font-size:11px;
+color:#5a5575;
+line-height:1.7;
+">
+Iris germanica, commonly known as the German Iris,
+is a perennial flowering plant known for its striking
+purple, blue and yellow blooms. It is widely grown
+in gardens.
+</p>
 
-        </div>
+</div>
 
-        <div class="info">
+<div class="info-card">
 
-            <b>Quick Facts</b>
+<b style="font-size:12px;">
+Quick Facts
+</b>
 
-            <div class="row">
-                <span>🔬 Scientific Name</span>
-                <span>Iris germanica</span>
-            </div>
+<div class="row">
+<span>🔬 Scientific Name</span>
+<span>Iris germanica</span>
+</div>
 
-            <div class="row">
-                <span>🏷️ Family</span>
-                <span>Iridaceae</span>
-            </div>
+<div class="row">
+<span>🏷️ Family</span>
+<span>Iridaceae</span>
+</div>
 
-            <div class="row">
-                <span>⏰ Bloom Time</span>
-                <span>Spring - Early Summer</span>
-            </div>
+<div class="row">
+<span>⏰ Bloom Time</span>
+<span>Spring - Early Summer</span>
+</div>
 
-        </div>
+<div class="row">
+<span>🌍 Habitat</span>
+<span>Gardens and meadows</span>
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+
+</div>
+""", unsafe_allow_html=True)
 
     if st.button(
         "← Back to Result",
@@ -767,86 +909,86 @@ elif st.session_state.page == "details":
     ):
         go("result")
 
-
-# =========================
-# 8 HISTORY
-# =========================
+# =========================================================
+# 8. HISTORY
+# =========================================================
 elif st.session_state.page == "history":
 
     st.markdown("""
-    <div class="inner">
+<div class="inner">
 
-        <b style="
-            color:#1e1142;
-            font-size:16px;
-        ">
-            ← Scan History
-        </b>
+<b style="
+font-size:18px;
+color:#1e1142;
+">
+🕒 Scan History
+</b>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
     for item in st.session_state.history:
 
         st.markdown(f"""
-        <div style="
-            display:flex;
-            align-items:center;
-            gap:10px;
-            padding:12px 18px;
-            border-bottom:1px solid #f0ecff;
-        ">
+<div style="
+display:flex;
+gap:10px;
+align-items:center;
+padding:12px 18px;
+border-bottom:1px solid #f0ecff;
+">
 
-            <div style="
-                width:48px;
-                height:48px;
-                background:#eee8ff;
-                border-radius:12px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                font-size:24px;
-            ">
-                🌸
-            </div>
+<div style="
+width:50px;
+height:50px;
+background:#eee8ff;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+">
+🌸
+</div>
 
-            <div>
+<div>
 
-                <b style="
-                    color:#302565;
-                    font-size:12px;
-                ">
-                    {item[0]}
-                </b>
+<b style="
+font-size:12px;
+color:#302565;
+">
+{item["name"]}
+</b>
 
-                <br>
+<br>
 
-                <small style="
-                    color:#999;
-                    font-size:10px;
-                ">
-                    {item[1]}
-                </small>
+<small style="
+font-size:10px;
+color:#999;
+">
+{item["time"]}
+</small>
 
-                <br>
+<br>
 
-                <span class="badge">
-                    {item[2]}
-                </span>
+<span class="badge">
+{item["score"]}
+</span>
 
-            </div>
+</div>
 
-            <span style="
-                margin-left:auto;
-                color:#999;
-            ">
-                ›
-            </span>
+<div style="
+margin-left:auto;
+color:#999;
+font-size:20px;
+">
+›
+</div>
 
-        </div>
-        """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.write("")
 
     if st.button(
         "← Home",
@@ -854,101 +996,104 @@ elif st.session_state.page == "history":
     ):
         go("home")
 
-
-# =========================
-# 9 PROFILE
-# =========================
+# =========================================================
+# 9. PROFILE
+# =========================================================
 elif st.session_state.page == "profile":
 
     st.markdown("""
-    <div class="inner">
+<div class="inner">
 
-        <div style="
-            display:flex;
-            justify-content:space-between;
-        ">
-            <span>←</span>
-            <b>Profile</b>
-            <span>⚙️</span>
-        </div>
+<div style="
+display:flex;
+justify-content:space-between;
+font-size:14px;
+font-weight:700;
+">
+<span>←</span>
+<span>Profile</span>
+<span>⚙️</span>
+</div>
 
-        <div style="
-            width:70px;
-            height:70px;
-            background:#ede9fe;
-            border-radius:50%;
-            margin:20px auto 10px;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            font-size:30px;
-        ">
-            👤
-        </div>
+<div style="
+width:70px;
+height:70px;
+background:#ede9fe;
+border-radius:50%;
+margin:20px auto 10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+">
+👤
+</div>
 
-        <div style="text-align:center">
+<div style="text-align:center;">
 
-            <b>Sanvi Mandavkar</b>
+<b style="font-size:15px;">
+Sanvi Mandavkar
+</b>
 
-            <br>
+<br>
 
-            <small style="color:#8a84a6">
-                sanvi@gmail.com
-            </small>
+<small style="color:#8a84a6;">
+sanvi@gmail.com
+</small>
 
-        </div>
+</div>
 
-        <div class="info">
+<div class="info-card">
 
-            <div class="row">
-                <span>👤 Member Since</span>
-                <b>12 Mar 2026</b>
-            </div>
+<div class="row">
+<span>👤 Member Since</span>
+<b>12 Mar 2026</b>
+</div>
 
-            <div class="row">
-                <span>🔍 Total Scans</span>
-                <b>32</b>
-            </div>
+<div class="row">
+<span>🔍 Total Scans</span>
+<b>32</b>
+</div>
 
-            <div class="row">
-                <span>⭐ Favorite Flower</span>
-                <b>Iris germanica</b>
-            </div>
+<div class="row">
+<span>⭐ Favorite Flower</span>
+<b>Iris germanica</b>
+</div>
 
-        </div>
+</div>
 
-        <div class="info">
+<div class="info-card">
 
-            <div style="
-                padding:9px 0;
-                border-bottom:1px solid #eee;
-                font-size:12px;
-            ">
-                🌿 My Plants
-                <span style="float:right">›</span>
-            </div>
+<div style="
+padding:10px 0;
+border-bottom:1px solid #e9e5ff;
+font-size:12px;
+">
+🌿 My Plants
+<span style="float:right;">›</span>
+</div>
 
-            <div style="
-                padding:9px 0;
-                border-bottom:1px solid #eee;
-                font-size:12px;
-            ">
-                🔖 Saved Flowers
-                <span style="float:right">›</span>
-            </div>
+<div style="
+padding:10px 0;
+border-bottom:1px solid #e9e5ff;
+font-size:12px;
+">
+🔖 Saved Flowers
+<span style="float:right;">›</span>
+</div>
 
-            <div style="
-                padding:9px 0;
-                font-size:12px;
-            ">
-                ❓ Help & Support
-                <span style="float:right">›</span>
-            </div>
+<div style="
+padding:10px 0;
+font-size:12px;
+">
+❓ Help & Support
+<span style="float:right;">›</span>
+</div>
 
-        </div>
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
     if st.button(
         "⚙️ Settings",
@@ -962,125 +1107,128 @@ elif st.session_state.page == "profile":
     ):
         go("home")
 
-
-# =========================
-# 10 SETTINGS
-# =========================
+# =========================================================
+# 10. SETTINGS
+# =========================================================
 elif st.session_state.page == "settings":
 
     st.markdown("""
-    <div class="inner">
+<div class="inner">
 
-        <b style="
-            color:#1e1142;
-            font-size:16px;
-        ">
-            ← Settings
-        </b>
+<b style="
+font-size:18px;
+color:#1e1142;
+">
+⚙️ Settings
+</b>
 
-        <div style="margin-top:20px">
+<div style="margin-top:20px;">
 
-            <b style="font-size:12px">
-                Account
-            </b>
+<b style="font-size:12px;">
+Account
+</b>
 
-            <div class="info">
+<div class="info-card">
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    👤 Edit Profile
-                    <span style="float:right">›</span>
-                </div>
+<div style="
+padding:10px 0;
+border-bottom:1px solid #e9e5ff;
+font-size:12px;
+">
+👤 Edit Profile
+<span style="float:right;">›</span>
+</div>
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    🔒 Change Password
-                    <span style="float:right">›</span>
-                </div>
+<div style="
+padding:10px 0;
+font-size:12px;
+">
+🔒 Change Password
+<span style="float:right;">›</span>
+</div>
 
-            </div>
+</div>
 
-        </div>
+</div>
 
-        <div style="margin-top:18px">
+<div style="margin-top:18px;">
 
-            <b style="font-size:12px">
-                App Preferences
-            </b>
+<b style="font-size:12px;">
+App Preferences
+</b>
 
-            <div class="info">
+<div class="info-card">
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    🔔 Notifications
-                    <span style="
-                        float:right;
-                        color:#4f33d1;
-                    ">
-                        ●
-                    </span>
-                </div>
+<div style="
+padding:10px 0;
+border-bottom:1px solid #e9e5ff;
+font-size:12px;
+">
+🔔 Notifications
+<span style="
+float:right;
+color:#4f33d1;
+">
+●
+</span>
+</div>
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    📷 Camera Quality
-                    <span style="float:right">
-                        High ›
-                    </span>
-                </div>
+<div style="
+padding:10px 0;
+border-bottom:1px solid #e9e5ff;
+font-size:12px;
+">
+📷 Camera Quality
+<span style="float:right;">
+High ›
+</span>
+</div>
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    🌐 Language
-                    <span style="float:right">
-                        English ›
-                    </span>
-                </div>
+<div style="
+padding:10px 0;
+font-size:12px;
+">
+🌐 Language
+<span style="float:right;">
+English ›
+</span>
+</div>
 
-            </div>
+</div>
 
-        </div>
+</div>
 
-        <div style="margin-top:18px">
+<div style="margin-top:18px;">
 
-            <b style="font-size:12px">
-                About
-            </b>
+<b style="font-size:12px;">
+About
+</b>
 
-            <div class="info">
+<div class="info-card">
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    ℹ️ About App
-                    <span style="float:right">›</span>
-                </div>
+<div style="
+padding:10px 0;
+border-bottom:1px solid #e9e5ff;
+font-size:12px;
+">
+ℹ️ About App
+<span style="float:right;">›</span>
+</div>
 
-                <div style="
-                    padding:9px 0;
-                    font-size:12px;
-                ">
-                    🔐 Privacy Policy
-                    <span style="float:right">›</span>
-                </div>
+<div style="
+padding:10px 0;
+font-size:12px;
+">
+🔐 Privacy Policy
+<span style="float:right;">›</span>
+</div>
 
-            </div>
+</div>
 
-        </div>
+</div>
 
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
     if st.button(
         "← Home",
