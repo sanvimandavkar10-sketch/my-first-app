@@ -1,43 +1,48 @@
-import streamlit as st
-from PIL import Image
-from transformers import pipeline
-
-st.set_page_config(page_title="Maza Photo App", layout="centered")
-
 st.markdown("""
 <style>
+/* 1. Background - Exact like demo */
 .stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #c7d2fe;
+    background-image: 
+        radial-gradient(at 20% 30%, #a5b4fc 0px, transparent 50%),
+        radial-gradient(at 80% 20%, #818cf8 0px, transparent 50%),
+        radial-gradient(at 40% 80%, #c084fc 0px, transparent 50%),
+        radial-gradient(at 90% 90%, #60a5fa 0px, transparent 50%),
+        linear-gradient(135deg, #ddd6fe 0%, #a5b4fc 100%);
+    background-attachment: fixed;
 }
-.glass-box {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
-    border-radius: 20px;
-    padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+header, #MainMenu, footer {visibility: hidden;}
+
+/* 2. Glass Card - 100% same as demo image */
+.glass-box, .glass-card {
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(25px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+    border-radius: 28px !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15) !important;
+    padding: 30px !important;
 }
-h1, p, label { color: white!important; }
+
+/* Text color like demo - dark purple */
+.glass-box h1, .glass-card h1 {
+    color: #4c1d95 !important;
+    font-weight: 800 !important;
+    text-align: center;
+}
+.glass-box p, .glass-card p, label {
+    color: #4b5563 !important;
+    text-align: center;
+}
+
+/* Button style */
+.stButton > button {
+    background: linear-gradient(90deg, #8b8cf8 0%, #6d28d9 100%) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    border: none !important;
+    width: 100% !important;
+    font-weight: 700 !important;
+}
 </style>
 """, unsafe_allow_html=True)
-
-@st.cache_resource
-def load_model():
-    return pipeline("image-classification", model="google/vit-base-patch16-224")
-classifier = load_model()
-
-st.markdown('<div class="glass-box">', unsafe_allow_html=True)
-st.title("Maza Glass Photo App ✨")
-st.write("Photo upload kar - mi sangto to Iris aahe ka!")
-
-file = st.file_uploader("Ithe photo tak", type=["jpg","png","jpeg"])
-if file:
-    image = Image.open(file)
-    st.image(image, use_container_width=True)
-    with st.spinner("Baghtoy..."):
-        res = classifier(image)[0]
-        if "iris" in res['label'].lower():
-            st.success(f"Ho! He IRIS aahe! ✅ {res['score']*100:.1f}%")
-        else:
-            st.warning(f"He Iris nahi, he {res['label']} aahe!")
-st.markdown('</div>', unsafe_allow_html=True)
