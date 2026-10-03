@@ -1,21 +1,46 @@
 import streamlit as st
+import time
 
 st.set_page_config(
-    page_title="Iris Flower Classification",
+    page_title="Iris Flower",
     page_icon="🌸",
     layout="centered"
 )
 
-st.title("🌸 Iris Flower Classification")
-st.write("Welcome to Iris Flower Classification App")
+# Splash Screen
+st.markdown(
+    """
+    <style>
+    .splash {
+        text-align: center;
+        padding-top: 180px;
+    }
 
-st.subheader("Upload or Take a Photo")
+    .flower {
+        font-size: 90px;
+    }
 
-photo = st.file_uploader(
-    "📷 Select photo",
-    type=["jpg", "jpeg", "png"]
+    .title {
+        font-size: 38px;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+
+    .subtitle {
+        font-size: 18px;
+        margin-top: 10px;
+    }
+    </style>
+
+    <div class="splash">
+        <div class="flower">🌸</div>
+        <div class="title">Iris Flower</div>
+        <div class="subtitle">Classification App</div>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
-if photo is not None:
-    st.success("Photo selected successfully! ✅")
-    st.image(photo, caption="Selected Photo", use_container_width=True)
+time.sleep(2)
+
+st.switch_page("pages/login.py")
