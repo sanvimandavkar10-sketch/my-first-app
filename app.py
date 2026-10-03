@@ -2,44 +2,54 @@ import streamlit as st
 from PIL import Image
 from transformers import pipeline
 
-st.set_page_config(page_title="Maza Glass App", layout="centered")
+st.set_page_config(page_title="Flower Classifier", layout="centered")
 
-# --- GLASS BACKGROUND - DEMO SAME TO SAME ---
+# --- PROPER GLASS UI - LIKE OTHER APPS ---
 st.markdown("""
 <style>
 .stApp {
-    background: #c7d2fe;
-    background-image:
-        radial-gradient(at 20% 30%, #a5b4fc 0px, transparent 50%),
-        radial-gradient(at 80% 20%, #818cf8 0px, transparent 50%),
-        radial-gradient(at 40% 80%, #c084fc 0px, transparent 50%),
-        linear-gradient(135deg, #ddd6fe 0%, #a5b4fc 100%);
-    background-attachment: fixed;
+    background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)!important;
+    background-attachment: fixed!important;
 }
 header, #MainMenu, footer {visibility: hidden;}
-.glass-card {
-    background: rgba(255, 255, 255, 0.72)!important;
-    backdrop-filter: blur(25px) saturate(180%)!important;
-    border-radius: 28px!important;
-    border: 1.5px solid rgba(255, 255, 255, 0.6)!important;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15)!important;
-    padding: 30px!important;
-    text-align: center;
+.block-container {
+    background: rgba(255, 255, 255, 0.85)!important;
+    backdrop-filter: blur(20px)!important;
+    border-radius: 20px!important;
+    padding: 2.5rem!important;
+    margin-top: 2rem!important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1)!important;
+    border: 1px solid rgba(255,255,255,0.5)!important;
 }
-.glass-card h1 { color: #4c1d95!important; font-weight: 800!important; }
+h1, h2, h3 { color: #2d3748!important; text-align: center!important; }
+p, label { color: #4a5568!important; }
+input {
+    background: white!important;
+    color: black!important;
+}
 .stButton > button {
-    background: linear-gradient(90deg, #8b8cf8, #6d28d9)!important;
-    color: white!important; border-radius: 12px!important; width: 100%!important;
+    background: #6c5ce7!important;
+    color: white!important;
+    border-radius: 10px!important;
+    width: 100%!important;
+    height: 45px!important;
+    font-weight: 600!important;
+    border: none!important;
+}
+.stButton > button:hover { background: #5a4bd1!important; }
+[data-testid="stFileUploader"] {
+    background: white!important;
+    border-radius: 10px!important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 if 'page' not in st.session_state:
     st.session_state.page = 'signin'
-    st.session_state.user_name = ''
-    st.session_state.last_result = ''
+    st.session_state.user = ''
+    st.session_state.result = ''
 
-def next_page(p):
+def go(p):
     st.session_state.page = p
     st.rerun()
 
@@ -48,45 +58,62 @@ def load_model():
     return pipeline("zero-shot-image-classification", model="openai/clip-vit-base-patch32")
 classifier = load_model()
 
-st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-
+# PAGE 1
 if st.session_state.page == 'signin':
-    st.title("Maza Pahila App")
-    name = st.text_input("Tujha naav:")
-    if st.button("Submit / Sign In"):
+    st.title("Flower AI App")
+    st.write("Welcome to Smart Flower Detection")
+    name = st.text_input("Enter Your Name")
+    if st.button("Sign In"):
         if name:
-            st.session_state.user_name = name
-            next_page('welcome')
+            st.session_state.user = name
+            go('welcome')
+        else:
+            st.warning("Please enter name")
 
+# PAGE 2
 elif st.session_state.page == 'welcome':
-    st.title(f"Welcome {st.session_state.user_name}! 👋")
-    if st.button("Next -> Upload Photo"): next_page('upload')
+    st.title(f"Welcome, {st.session_state.user}! 👋")
+    st.write("This app detects flower type using AI.")
+    st.write("Click Next to continue.")
+    if st.button("Next - Upload Photo"): go('upload')
 
+# PAGE 3
 elif st.session_state.page == 'upload':
-    st.title("Photo Taka 📸")
-    file = st.file_uploader("Photo", type=["jpg","png","jpeg"])
-    cam = st.camera_input("Camera")
-    final_file = cam if cam else file
-    if final_file:
-        img = Image.open(final_file)
-        st.image(img, use_container_width=True)
-        with st.spinner("AI baghtoy..."):
-            res = classifier(img, candidate_labels=["iris flower","adenium flower","rose flower","other flower","flower pot"])[0]
-            st.session_state.last_result = res['label']
-            if "iris" in res['label']: st.success(f"Ho! He IRIS aahe! ✅ {res['score']*100:.1f}%")
-            else: st.warning(f"He {res['label']} aahe!")
-        if st.button("Final Result Bagh"): next_page('final')
+    st.title("Upload Photo 📸")
+    st.write("Upload a flower image")
+    file = st.file_uploader("Choose Image", type=["jpg","png","jpeg"])
+    camera = st.camera_input("Or Take Photo")
+    final = camera if camera else file
 
+    if final:
+        img = Image.open(final)
+        st.image(img, caption="Your Photo", use_container_width=True)
+        with st.spinner("Analyzing with AI..."):
+            res = classifier(img, candidate_labels=["iris flower","adenium flower","rose flower","sunflower","tulip"])[0]
+            st.session_state.result = res
+            if "iris" in res['label'].lower():
+                st.success(f"Detected: IRIS FLOWER ✅ Confidence: {res['score']*100:.1f}%")
+            else:
+                st.info(f"Detected: {res['label'].upper()} - {res['score']*100:.1f}%")
+        if st.button("View Final Result"): go('final')
+
+# PAGE 4
 elif st.session_state.page == 'final':
-    st.title("Final Result ✨")
-    st.info(st.session_state.last_result)
-    if st.button("Rating De"): next_page('rating')
+    st.title("Final Result")
+    r = st.session_state.result
+    if r:
+        st.metric("Flower Type", r['label'])
+        st.metric("Confidence", f"{r['score']*100:.1f}%")
+    if st.button("Give Rating"): go('rating')
+    if st.button("Upload Another"): go('upload')
 
+# PAGE 5
 else:
-    st.title("Rating De ⭐")
-    stars = st.slider("Stars",1,5,5)
-    if st.button("Submit"):
+    st.title("Rate Us ⭐")
+    st.write("How was your experience?")
+    stars = st.slider("Rating", 1, 5, 5)
+    feedback = st.text_area("Feedback (Optional)")
+    if st.button("Submit Feedback"):
         st.balloons()
-        st.success(f"Thanks {st.session_state.user_name}! {stars} stars!")
-
-st.markdown('</div>', unsafe_allow_html=True)
+        st.success(f"Thank you {st.session_state.user}! You rated {stars} stars.")
+        if st.button("Go to Home"): go('signin')
